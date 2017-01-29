@@ -1,0 +1,139 @@
+---
+output: html_document
+---
+
+# Bacterial genome annotation report
+##### Reporting date : `r Sys.time()`  
+`r library(shiny); hr()`
+
+### 1. Bacterial genome annotation report
+
+``` {r echo=FALSE}
+  
+  qpname = system2('head', c('-n', '1', '/home/pCAPS/log/search.log'), stdout = TRUE) 
+  ainfo = system2('head', c('-n', '6', paste0('/home/pCAPS/', qpname, '/temp/', qpname, '.log')), stdout = TRUE)
+  annoinfo = system2('head', c('-n', '6', paste0('/home/pCAPS/', qpname, '/temp/reportinfo.txt')), stdout = TRUE)
+  
+```
+
+  Name | Project ID | Genome size | Protein | rRNA | tRNA | gene | G+C ratio (%)
+  ----------- | ----------- | --------------------- | ------------------ | ------------------ | ------------------ | ------------- | --------------  
+  **_`r ainfo[6]`_** | `r ainfo[1]`  | `r annoinfo[1]`        | `r annoinfo[2]`                 | `r annoinfo[3]`              | `r annoinfo[4]`                | `r annoinfo[5]`                | `r annoinfo[6]`
+
+  
+### 2. Analysis Result of Kegg Orthology  
+[Kegg Orthology : http://www.genome.jp/kegg/ko.html](http://www.genome.jp/kegg/ko.html)  
+
+``` {r echo=FALSE}
+  
+    library(stringi)
+    
+    qpname = system2('head', c('-n', '1', '/home/pCAPS/log/search.log'), stdout = TRUE) 
+    ainfo = system2('head', c('-n', '6', paste0('/home/pCAPS/', qpname, '/temp/', qpname, '.log')), stdout = TRUE)
+  
+    aname = readLines(paste0('/home/pCAPS/', ainfo[1], "/temp/a_name.txt"))
+    anumber = readLines(paste0('/home/pCAPS/', ainfo[1], "/temp/a_num.txt"))
+    bname = readLines(paste0('/home/pCAPS/', ainfo[1], "/temp/b_name.txt"))
+    bnumber = readLines(paste0('/home/pCAPS/', ainfo[1], "/temp/b_num.txt"))
+
+    library(graphics)
+
+    a_sum=0
+    b_sum=0
+    anumber = as.numeric(anumber)
+    bnumber = as.numeric(bnumber)
+
+    al = length(anumber)
+    bl = length(bnumber)
+    al = as.numeric(al)
+    bl = as.numeric(bl)
+
+    for(a in 1:al){
+    a_sum = a_sum+anumber[a]
+    a=a+1
+    }
+
+    for(b in 1:bl){
+    b_sum = b_sum+bnumber[b]
+    b=b+1
+    }
+    
+    ratio_a = (round(anumber/a_sum, 3))*100
+    
+    par(mai = c(0,0,0,0))
+    layout(c(1.8,2), heights=c(0.3,2.5))
+    plot.new()
+
+    plotColor_a = c("black", "grey70", "grey40", "white")
+
+    pie(bnumber, labels = bname, edges = 200, cex = 0.6, radius = 0.75, col = rainbow(bl))
+    par(new=T)
+    pie(anumber, labels= NA, edges = 200, radius = 0.5, col = plotColor_a)
+    legend("topleft", aname, cex=0.6, fill= plotColor_a)
+    
+    b_level_list = c("Overview", "Carbohydrate metabolism", "Energy metabolism", "Lipid metabolism", "Nucleotide metabolism", "Amino acid metabolism", "Metabolism of other amino acids", "Glycan biosynthesis and metabolism", "Metabolism of cofactors and vitamins", "Metabolism of terpenoids and polyketides", "Biosynthesis of other secondary metabolites", "Xenobiotics biodegradation and metabolism", "Enzyme families", "Transcription", "Translation", "Folding, sorting and degradation", "Replication and repair", "RNA family", "Membrane transport", "Signal transduction", "Signaling molecules and interaction", "Transport and catabolism", "Cell motility", "Cell growth and death", "Cellular community - prokaryotes")
+    
+    checkdata_num = 0
+    leng_b_level_list = as.numeric(length(b_level_list))
+    
+    for(c in 1:bl){
+      for(d in 1:leng_b_level_list){
+        if(stri_cmp_eq(b_level_list[d], bname[c]) == TRUE){
+          checkdata_num[d] = bnumber[c]
+        } else {}
+      }
+    }
+    
+    for(i in 1:25){
+      if(is.na(checkdata_num[i]) == TRUE){
+        checkdata_num[i] = 0
+      }
+    }
+
+    ratio_b = (round(checkdata_num/b_sum,3))*100
+
+
+```
+
+
+  __[A Level]__
+
+  `r aname[1]` | `r aname[2]` | `r aname[3]` | `r aname[4]` | __TOTAL__
+  ----- | ----- | ----- | ----- | -----
+  `r paste0(" ", ratio_a[1],"%")` | `r paste0(" ", ratio_a[2],"%")` | `r paste0(" ", ratio_a[3],"%")` | `r paste0(" ", ratio_a[4],"%")` | __100%__
+  (`r anumber[1]`) | (`r anumber[2]`) | (`r anumber[3]`) | (`r anumber[4]`) | (`r a_sum`)
+
+
+  __[B Level]__
+  
+ Index | Percentage
+ ----- | ----------
+ `r b_level_list[1]` | `r paste0(ratio_b[1], "%", " (", checkdata_num[1], ")")`
+ `r b_level_list[2]` | `r paste0(ratio_b[2], "%", " (", checkdata_num[2], ")")`
+ `r b_level_list[3]` | `r paste0(ratio_b[3], "%", " (", checkdata_num[3], ")")`
+ `r b_level_list[4]` | `r paste0(ratio_b[4], "%", " (", checkdata_num[4], ")")`
+ `r b_level_list[5]` | `r paste0(ratio_b[5], "%", " (", checkdata_num[5], ")")`
+ `r b_level_list[6]` | `r paste0(ratio_b[6], "%", " (", checkdata_num[6], ")")`
+ `r b_level_list[7]` | `r paste0(ratio_b[7], "%", " (", checkdata_num[7], ")")`
+ `r b_level_list[8]` | `r paste0(ratio_b[8], "%", " (", checkdata_num[8], ")")`
+ `r b_level_list[9]` | `r paste0(ratio_b[9], "%", " (", checkdata_num[9], ")")`
+ `r b_level_list[10]` | `r paste0(ratio_b[10], "%", " (", checkdata_num[10], ")")`
+ `r b_level_list[11]` | `r paste0(ratio_b[11], "%", " (", checkdata_num[11], ")")`
+ `r b_level_list[12]` | `r paste0(ratio_b[12], "%", " (", checkdata_num[12], ")")`
+ `r b_level_list[13]` | `r paste0(ratio_b[13], "%", " (", checkdata_num[13], ")")`
+ `r b_level_list[14]` | `r paste0(ratio_b[14], "%", " (", checkdata_num[14], ")")`
+ `r b_level_list[15]` | `r paste0(ratio_b[15], "%", " (", checkdata_num[15], ")")`
+ `r b_level_list[16]` | `r paste0(ratio_b[16], "%", " (", checkdata_num[16], ")")`
+ `r b_level_list[17]` | `r paste0(ratio_b[17], "%", " (", checkdata_num[17], ")")`
+ `r b_level_list[18]` | `r paste0(ratio_b[18], "%", " (", checkdata_num[18], ")")`
+ `r b_level_list[19]` | `r paste0(ratio_b[19], "%", " (", checkdata_num[19], ")")`
+ `r b_level_list[20]` | `r paste0(ratio_b[20], "%", " (", checkdata_num[20], ")")`
+ `r b_level_list[21]` | `r paste0(ratio_b[21], "%", " (", checkdata_num[21], ")")`
+ `r b_level_list[22]` | `r paste0(ratio_b[22], "%", " (", checkdata_num[22], ")")`
+ `r b_level_list[23]` | `r paste0(ratio_b[23], "%", " (", checkdata_num[23], ")")`
+ `r b_level_list[24]` | `r paste0(ratio_b[24], "%", " (", checkdata_num[24], ")")`
+ `r b_level_list[25]` | `r paste0(ratio_b[25], "%", " (", checkdata_num[25], ")")`  
+  __TOTAL__ | __100%__ (`r b_sum`)
+
+
+
